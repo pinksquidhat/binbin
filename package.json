@@ -1,0 +1,14 @@
+{
+  "name": "binbin",
+  "version": "0.1.0",
+  "description": "Parse and serialize binary files.",
+  "main": "lib/binbin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": {
+    "name": "Scott Baldwin",
+    "email": "sbaldwin621@gmail.com"
+  },
+  "license": "MIT"
+}
