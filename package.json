@@ -4,11 +4,15 @@
   "description": "Parse and serialize binary files.",
   "main": "lib/binbin.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": {
     "name": "Scott Baldwin",
     "email": "sbaldwin621@gmail.com"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^4.0.2",
+    "mocha": "^3.4.2"
+  }
 }
