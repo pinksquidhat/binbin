@@ -53,4 +53,29 @@ describe('decode', () => {
     
     assert.deepEqual(decoded.a, [1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1])
   });
+
+  it('decodes branch', () => {
+    const sampleData1 = [0x00, 0xC0, 0xFF, 0xEE];
+    const sampleData2 = [0x01, 0xC0, 0xFF, 0xEE];
+
+    const spec = bb.sequence(
+      ['type', bb.byte],
+      bb.branch('type', {
+        0: bb.sequence(
+          ['a', bb.byte],
+          ['b', bb.byte],
+          ['c', bb.byte]
+        ),
+        1: bb.sequence(
+          ['big', bb.uint(24)]
+        )
+      })
+    );
+
+    const decoded1 = decode(spec, sampleData1);
+    const decoded2 = decode(spec, sampleData2);
+
+    assert.deepEqual(decoded1, {type: 0, a: 0xC0, b: 0xFF, c: 0xEE});
+    assert.deepEqual(decoded2, {type: 1, big: 0xC0FFEE });
+  })
 });

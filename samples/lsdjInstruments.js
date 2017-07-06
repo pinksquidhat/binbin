@@ -96,12 +96,12 @@ const noiseInstrument = bb.sequence(
 
 const instrument = bb.sequence(
   ['type', bb.byte],
-  ['parameters', bb.branch('type', {
+  bb.branch('type', {
     0: pulseInstrument,
     1: waveInstrument,
     2: kitInstrument,
     3: noiseInstrument
-  })]
+  })
 );
 
 const instrumentList = bb.array(64, instrument);
