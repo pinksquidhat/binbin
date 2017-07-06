@@ -79,3 +79,13 @@ describe('decode', () => {
     assert.deepEqual(decoded2, {type: 1, big: 0xC0FFEE });
   })
 });
+
+describe('encode', () => {
+  it('encodes uint', () => {
+    const spec = bb.uint(24);
+
+    const encoded = encode(spec, 0xC0FFEE);
+
+    assert.deepEqual(encoded, [0xC0, 0xFF, 0xEE])
+  });
+});
