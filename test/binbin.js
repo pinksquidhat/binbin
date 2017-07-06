@@ -5,26 +5,27 @@ describe('decode', () => {
   it('decodes on boundaries', () => {
     const sampleData = [parseInt('00001111', 2), parseInt('00100001', 2)];
     const decoded = decode(bb.sequence(
-      ['a', bb.bit4],
-      ['b', bb.bit4],
-      ['c', bb.bit4],
-      ['d', bb.bit4]
+      ['a', bb.bit(4)],
+      ['b', bb.bit(4)],
+      ['c', bb.bit(4)],
+      ['d', bb.bit(4)]
     ), sampleData);
 
     assert.equal(decoded.a, 0);
     assert.equal(decoded.b, 15);
     assert.equal(decoded.c, 2);
     assert.equal(decoded.d, 1);
-  })
+  });
+
   it('decodes simple bits', () => {
     const sampleData = [parseInt('00001111', 2), parseInt('01101100', 2)];
     const decoded = decode(bb.sequence(
-      ['a', bb.bit4],
+      ['a', bb.bit(4)],
       ['b', bb.sequence(
-        ['bb', bb.bit1]
+        ['bb', bb.bit]
       )],
-      ['c', bb.bit4],
-      ['d', bb.bit7]
+      ['c', bb.bit(4)],
+      ['d', bb.bit(7)]
     ), sampleData);
 
     assert.equal(decoded.a, 0);
@@ -32,22 +33,24 @@ describe('decode', () => {
     assert.equal(decoded.c, 14);
     assert.equal(decoded.d, 108);
   });
-  it('decodes uint8', () => {
-    const sampleData = [13, 37];
+
+  it('decodes uint', () => {
+    const sampleData = [16, 16, 37];
     const decoded = decode(bb.sequence(
-      ['a', bb.uint8],
-      ['b', bb.uint8]
+      ['a', bb.uint(16)],
+      ['b', bb.uint(8)]
     ), sampleData);
 
-    assert.equal(decoded.a, 13);
+    assert.equal(decoded.a, 4112);
     assert.equal(decoded.b, 37);
   });
+
   it('decodes array of bits', () => {
     const sampleData = [parseInt('10101011', 2), parseInt('01011101', 2)];
     const decoded = decode(bb.sequence(
-      ['a', bb.array(16, bb.bit1)]
+      ['a', bb.array(16, bb.bit)]
     ), sampleData);
     
     assert.deepEqual(decoded.a, [1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1])
-  })
+  });
 });
