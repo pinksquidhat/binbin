@@ -60,7 +60,7 @@ describe('decode', () => {
 
     const spec = bb.sequence(
       ['type', bb.byte],
-      bb.branch('type', {
+      [bb.embed, bb.branch('type', {
         0: bb.sequence(
           ['a', bb.byte],
           ['b', bb.byte],
@@ -69,7 +69,7 @@ describe('decode', () => {
         1: bb.sequence(
           ['big', bb.uint(24)]
         )
-      })
+      })]
     );
 
     const decoded1 = decode(spec, sampleData1);
