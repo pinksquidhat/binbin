@@ -81,11 +81,49 @@ describe('decode', () => {
 });
 
 describe('encode', () => {
-  it('encodes uint', () => {
-    const spec = bb.uint(24);
-
-    const encoded = encode(spec, 0xC0FFEE);
-
-    assert.deepEqual(encoded, [0xC0, 0xFF, 0xEE])
+  describe('uint', () => {
+    it('encodes multi-byte uint', () => {
+      const spec = bb.uint(24);
+      const encoded = encode(spec, 0xC0FFEE);
+      assert.deepEqual(encoded, [0xC0, 0xFF, 0xEE])
+    });
   });
+
+  describe('bits', () => {
+    it('encodes within single byte', () => {
+      const spec = bb.sequence(
+        ['a', bb.bit(4)],
+        ['b', bb.bit(2)],
+        ['c', bb.bit(2)]
+      );
+      const encoded = encode(spec, {
+        a: 0b1101,
+        b: 0b10,
+        c: 0b01
+      });
+
+      assert.deepEqual(encoded, [0b11011001]);
+    });
+    it('encodes across three bytes', () => {
+      const spec = bb.sequence(
+        ['a', bb.bit(7)],
+        ['b', bb.bit(12)],
+        ['c', bb.bit(5)]
+      );
+      const encoded = encode(spec, {
+        a: 0b1111111,
+        b: 0b110101101101,
+        c: 0b01011
+      });
+
+      assert.deepEqual(encoded, [0b11111111, 0b10101101, 0b10101011])
+    })
+  })
 });
+
+
+function paddedBinary(n) {
+  const s = n.toString(2);
+  const padAmount = (8 - s.length) % 8;
+  return new Array(padAmount+1).join('0') + s;
+}
