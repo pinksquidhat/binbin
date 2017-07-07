@@ -117,8 +117,85 @@ describe('encode', () => {
       });
 
       assert.deepEqual(encoded, [0b11111111, 0b10101101, 0b10101011])
+    });
+    it('clips overflow', () => {
+      const spec = bb.sequence(
+        ['a', bb.bit(7)],
+        ['b', bb.bit(12)],
+        ['c', bb.bit(5)]
+      );
+      const encoded = encode(spec, {
+        a: 0b11111111,
+        b: 0b1111110101101101,
+        c: 0b11101011
+      });
+
+      assert.deepEqual(encoded, [0b11111111, 0b10101101, 0b10101011])
     })
-  })
+  });
+
+  describe('padding', () => {
+    it('encodes padding between bits', () => {
+      const spec = bb.sequence(
+        ['a', bb.bit(7)],
+        bb.padding(12),
+        ['c', bb.bit(5)]
+      );
+
+      const encoded = encode(spec, {
+        a: 0b1111111,
+        c: 0b11111
+      });
+
+      assert.deepEqual(encoded, [0b11111110, 0b00000000, 0b00011111]);
+    });
+  });
+
+  describe('array', () => {
+    it('encodes array', () => {
+      const spec = bb.sequence(
+        ['a', bb.array(5, bb.bit(2))],
+        ['b', bb.array(6, bb.bit)]
+      );
+
+      const encoded = encode(spec, {
+        a: [0b10, 0b01, 0b11, 0b01, 0b10],
+        b: [0b1, 0b1, 0b0, 0b0, 0b1, 0b1]
+      });
+
+      assert.deepEqual(encoded, [0b10011101, 0b10110011])
+    });
+  });
+
+  describe('branch', () => {
+    it('encoded branch', () => {
+      const spec = bb.sequence(
+        ['a', bb.byte],
+        ['b', bb.branch('a', {
+          0: bb.sequence(
+            [bb.embed, bb.array(5, bb.bit(4))],
+            bb.padding(4)
+          ),
+          1: bb.sequence(
+            [bb.embed, bb.array(5, bb.bit(2))],
+            bb.padding(6)
+          )
+        })]
+      );
+
+      const encoded0 = encode(spec, {
+        a: 0,
+        b: [0b1111, 0b1110, 0b1101, 0b1100, 0b1000]
+      });
+      const encoded1 = encode(spec, {
+        a: 1,
+        b: [0b1111, 0b1110, 0b1101, 0b1100, 0b100]
+      });
+
+      assert.deepEqual(encoded0, [0, 0b11111110, 0b11011100, 0b10000000]);
+      assert.deepEqual(encoded1, [1, 0b11100100, 0b00000000]);
+    });
+  });
 });
 
 
