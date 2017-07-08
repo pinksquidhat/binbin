@@ -107,10 +107,31 @@ describe('decode', () => {
       const expected = "🤔 hmmmmm";
       const sampleData = Uint8Array.from([240, 159, 164, 148, 32, 104, 109, 109, 109, 109, 109]);
       const spec = bb.string(11, 'utf-8');
+
       const decoded = decode(spec, sampleData);
+
       assert.deepEqual(decoded, expected);
     })
-  })
+  });
+
+  describe('padding', () => {
+    it('decodes padding', () => {
+      const expected = {
+        a: 0b11,
+        b: 0b10
+      };
+      const sampleData = [0xC0, 0xFF, 0xEE];
+      const spec = bb.sequence(
+        ['a', bb.bit(2)],
+        bb.padding(6 + 8 + 6),
+        ['b', bb.bit(2)]
+      );
+      
+      const decoded = decode(spec, sampleData);
+
+      assert.deepEqual(decoded, expected);
+    })
+  });
 });
 
 describe('encode', () => {
@@ -281,6 +302,25 @@ describe('encode', () => {
 
       const encoded = encode(spec, sampleData);
 
+      assert.deepEqual(encoded, expected);
+    })
+  })
+
+  describe('padding', () => {
+    it('encoded padding', () => {
+      const expected = Uint8Array.from([0b10100000, 0b00000000, 0b00101111]);
+      const sampleData = {
+        a: 0b101,
+        b: 0b101111
+      }
+      const spec = bb.sequence(
+        ['a', bb.bit(3)],
+        bb.padding(5 + 8 + 2),
+        ['b', bb.bit(6)]
+      );
+      
+      const encoded = encode(spec, sampleData);
+      
       assert.deepEqual(encoded, expected);
     })
   })
