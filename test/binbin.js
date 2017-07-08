@@ -90,6 +90,17 @@ describe('decode', () => {
       assert.deepEqual(decoded2, {type: 1, big: 0xC0FFEE });
     })
   })
+
+  describe('slice', () => {
+    it('decodes slice', () => {
+      const sampleData = Uint8Array.from([0x00, 0xC0, 0xFF, 0xEE]);
+      const spec = bb.slice(4);
+
+      const decoded = decode(spec, sampleData);
+
+      assert.deepEqual(decoded, sampleData);
+    })
+  })
 });
 
 describe('encode', () => {
@@ -239,6 +250,17 @@ describe('encode', () => {
       assert.deepEqual(encoded0, Uint8Array.from([0, 0b11111110, 0b11011100, 0b10000000]));
       assert.deepEqual(encoded1, Uint8Array.from([1, 0b11100100, 0b00000000]));
     });
+  });
+
+  describe('slice', () => {
+    it('encoded slice', () => {
+      const spec = bb.slice(3);
+      const data = Uint8Array.from([0xC0, 0xFF, 0xEE])
+
+      const encoded = encode(spec, data);
+
+      assert.deepEqual(encoded, data);
+    })
   });
 });
 
