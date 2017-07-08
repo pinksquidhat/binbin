@@ -1,12 +1,12 @@
 const { assert } = require('chai');
 const BigNumber = require('bignumber.js');
 
-const { bb, decode, encode } = require('../lib/binbin');
+const bb = require('../lib/binbin');
 
 describe('decode', () => {
   it('decodes on boundaries', () => {
     const sampleData = [parseInt('00001111', 2), parseInt('00100001', 2)];
-    const decoded = decode(bb.sequence(
+    const decoded = bb.decode(bb.sequence(
       ['a', bb.bit(4)],
       ['b', bb.bit(4)],
       ['c', bb.bit(4)],
@@ -22,7 +22,7 @@ describe('decode', () => {
   describe('bits', () => {
     it('decodes sequence of bits', () => {
       const sampleData = [0b00001111, 0b01101100];
-      const decoded = decode(bb.sequence(
+      const decoded = bb.decode(bb.sequence(
         ['a', bb.bit(4)],
         ['b', bb.sequence(
           ['bb', bb.bit]
@@ -47,7 +47,7 @@ describe('decode', () => {
         sampleData.push(0b11111111);
       }
 
-      const decoded = decode(bb.bignumber(128), sampleData);
+      const decoded = bb.decode(bb.bignumber(128), sampleData);
 
       assert.isTrue(decoded.equals(new BigNumber(2).pow(128).minus(1)));
     })
@@ -56,7 +56,7 @@ describe('decode', () => {
   describe('array', () => {
     it('decodes array of bits', () => {
       const sampleData = [0b10101011, 0b01011101];
-      const decoded = decode(bb.sequence(
+      const decoded = bb.decode(bb.sequence(
         ['a', bb.array(16, bb.bit)]
       ), sampleData);
       
@@ -83,8 +83,8 @@ describe('decode', () => {
         })]
       );
 
-      const decoded1 = decode(spec, sampleData1);
-      const decoded2 = decode(spec, sampleData2);
+      const decoded1 = bb.decode(spec, sampleData1);
+      const decoded2 = bb.decode(spec, sampleData2);
 
       assert.deepEqual(decoded1, {type: 0, a: 0xC0, b: 0xFF, c: 0xEE});
       assert.deepEqual(decoded2, {type: 1, big: 0xC0FFEE });
@@ -96,7 +96,7 @@ describe('decode', () => {
       const sampleData = Uint8Array.from([0x00, 0xC0, 0xFF, 0xEE]);
       const spec = bb.slice(4);
 
-      const decoded = decode(spec, sampleData);
+      const decoded = bb.decode(spec, sampleData);
 
       assert.deepEqual(decoded, sampleData);
     })
@@ -108,7 +108,7 @@ describe('decode', () => {
       const sampleData = Uint8Array.from([240, 159, 164, 148, 32, 104, 109, 109, 109, 109, 109]);
       const spec = bb.string(11, 'utf-8');
 
-      const decoded = decode(spec, sampleData);
+      const decoded = bb.decode(spec, sampleData);
 
       assert.deepEqual(decoded, expected);
     })
@@ -127,7 +127,7 @@ describe('decode', () => {
         ['b', bb.bit(2)]
       );
       
-      const decoded = decode(spec, sampleData);
+      const decoded = bb.decode(spec, sampleData);
 
       assert.deepEqual(decoded, expected);
     })
@@ -142,7 +142,7 @@ describe('encode', () => {
         ['b', bb.bit(2)],
         ['c', bb.bit(2)]
       );
-      const encoded = encode(spec, {
+      const encoded = bb.encode(spec, {
         a: 0b1101,
         b: 0b10,
         c: 0b01
@@ -156,7 +156,7 @@ describe('encode', () => {
         ['b', bb.bit(12)],
         ['c', bb.bit(5)]
       );
-      const encoded = encode(spec, {
+      const encoded = bb.encode(spec, {
         a: 0b1111111,
         b: 0b110101101101,
         c: 0b01011
@@ -170,7 +170,7 @@ describe('encode', () => {
         ['b', bb.bit(12)],
         ['c', bb.bit(5)]
       );
-      const encoded = encode(spec, {
+      const encoded = bb.encode(spec, {
         a: 0b11111111,
         b: 0b1111110101101101,
         c: 0b11101011
@@ -184,7 +184,7 @@ describe('encode', () => {
     it('???', () => {
       const spec = bb.bignumber(64);
       const data = new BigNumber('0000D000' + '0000F300', 16);
-      const encoded = encode(spec, data);
+      const encoded = bb.encode(spec, data);
 
       assert.deepEqual(encoded, Uint8Array.from([
         0x00, 0x00, 0xD0, 0x00, 0x00, 0x00, 0xF3, 0x00
@@ -192,7 +192,7 @@ describe('encode', () => {
     })
     it('encodes bignumber', () => {
       const spec = bb.bignumber(128);
-      const encoded = encode(spec,
+      const encoded = bb.encode(spec,
         new BigNumber(
           '10000000'+
           '11000000'+
@@ -244,7 +244,7 @@ describe('encode', () => {
         ['b', bb.array(6, bb.bit)]
       );
 
-      const encoded = encode(spec, {
+      const encoded = bb.encode(spec, {
         a: [0b10, 0b01, 0b11, 0b01, 0b10],
         b: [0b1, 0b1, 0b0, 0b0, 0b1, 0b1]
       });
@@ -269,11 +269,11 @@ describe('encode', () => {
         })]
       );
 
-      const encoded0 = encode(spec, {
+      const encoded0 = bb.encode(spec, {
         a: 0,
         b: [0b1111, 0b1110, 0b1101, 0b1100, 0b1000]
       });
-      const encoded1 = encode(spec, {
+      const encoded1 = bb.encode(spec, {
         a: 1,
         b: [0b1111, 0b1110, 0b1101, 0b1100, 0b100]
       });
@@ -288,7 +288,7 @@ describe('encode', () => {
       const spec = bb.slice(3);
       const data = Uint8Array.from([0xC0, 0xFF, 0xEE])
 
-      const encoded = encode(spec, data);
+      const encoded = bb.encode(spec, data);
 
       assert.deepEqual(encoded, data);
     })
@@ -300,7 +300,7 @@ describe('encode', () => {
       const sampleData = "🤔 hmmmmm";
       const spec = bb.string(11, 'utf-8');
 
-      const encoded = encode(spec, sampleData);
+      const encoded = bb.encode(spec, sampleData);
 
       assert.deepEqual(encoded, expected);
     })
@@ -318,8 +318,8 @@ describe('encode', () => {
         bb.padding(5 + 8 + 2),
         ['b', bb.bit(6)]
       );
-      
-      const encoded = encode(spec, sampleData);
+
+      const encoded = bb.encode(spec, sampleData);
       
       assert.deepEqual(encoded, expected);
     })
