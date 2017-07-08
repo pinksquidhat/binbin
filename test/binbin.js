@@ -85,7 +85,7 @@ describe('encode', () => {
     it('encodes multi-byte uint', () => {
       const spec = bb.uint(24);
       const encoded = encode(spec, 0xC0FFEE);
-      assert.deepEqual(encoded, [0xC0, 0xFF, 0xEE])
+      assert.deepEqual(encoded, Uint8Array.from([0xC0, 0xFF, 0xEE]))
     });
   });
 
@@ -102,7 +102,7 @@ describe('encode', () => {
         c: 0b01
       });
 
-      assert.deepEqual(encoded, [0b11011001]);
+      assert.deepEqual(encoded, Uint8Array.from([0b11011001]));
     });
     it('encodes across three bytes', () => {
       const spec = bb.sequence(
@@ -115,9 +115,17 @@ describe('encode', () => {
         b: 0b110101101101,
         c: 0b01011
       });
-
-      assert.deepEqual(encoded, [0b11111111, 0b10101101, 0b10101011])
+      
+      assert.deepEqual(encoded, Uint8Array.from([0b11111111, 0b10101101, 0b10101011]))
     });
+    // it('encodes high-bit bytes', () => {
+    //   const spec = bb.bit(64);
+    //   const encoded = encode(spec, {
+    //     a: new BigNumber('228698418639616')
+    //   });
+
+    //   console.log(encoded);
+    // })
     it('clips overflow', () => {
       const spec = bb.sequence(
         ['a', bb.bit(7)],
@@ -130,25 +138,8 @@ describe('encode', () => {
         c: 0b11101011
       });
 
-      assert.deepEqual(encoded, [0b11111111, 0b10101101, 0b10101011])
+      assert.deepEqual(encoded, Uint8Array.from([0b11111111, 0b10101101, 0b10101011]))
     })
-  });
-
-  describe('padding', () => {
-    it('encodes padding between bits', () => {
-      const spec = bb.sequence(
-        ['a', bb.bit(7)],
-        bb.padding(12),
-        ['c', bb.bit(5)]
-      );
-
-      const encoded = encode(spec, {
-        a: 0b1111111,
-        c: 0b11111
-      });
-
-      assert.deepEqual(encoded, [0b11111110, 0b00000000, 0b00011111]);
-    });
   });
 
   describe('array', () => {
@@ -163,7 +154,7 @@ describe('encode', () => {
         b: [0b1, 0b1, 0b0, 0b0, 0b1, 0b1]
       });
 
-      assert.deepEqual(encoded, [0b10011101, 0b10110011])
+      assert.deepEqual(encoded, Uint8Array.from([0b10011101, 0b10110011]))
     });
   });
 
@@ -174,11 +165,11 @@ describe('encode', () => {
         ['b', bb.branch('a', {
           0: bb.sequence(
             [bb.embed, bb.array(5, bb.bit(4))],
-            bb.padding(4)
+            bb.bit(4)
           ),
           1: bb.sequence(
             [bb.embed, bb.array(5, bb.bit(2))],
-            bb.padding(6)
+            bb.bit(6)
           )
         })]
       );
@@ -192,8 +183,8 @@ describe('encode', () => {
         b: [0b1111, 0b1110, 0b1101, 0b1100, 0b100]
       });
 
-      assert.deepEqual(encoded0, [0, 0b11111110, 0b11011100, 0b10000000]);
-      assert.deepEqual(encoded1, [1, 0b11100100, 0b00000000]);
+      assert.deepEqual(encoded0, Uint8Array.from([0, 0b11111110, 0b11011100, 0b10000000]));
+      assert.deepEqual(encoded1, Uint8Array.from([1, 0b11100100, 0b00000000]));
     });
   });
 });
