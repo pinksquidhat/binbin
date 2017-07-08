@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { bb, decode, encode } = require('../lib/binbin');
+const bb = require('../lib/binbin');
 
 const vibrato = bb.sequence(
   ['type', bb.bit(2)],
@@ -106,8 +106,8 @@ const instrument = bb.sequence(
 
 const instrumentList = bb.array(64, instrument);
 
-const decoded = decode(instrumentList, fs.readFileSync('./samples/lsdjInstruments.bin'));
-const reencoded = encode(instrumentList, decoded);
+const decoded = bb.decode(instrumentList, fs.readFileSync('./samples/lsdjInstruments.bin'));
+const reencoded = bb.encode(instrumentList, decoded);
 
 console.log(JSON.stringify(
   decoded,
