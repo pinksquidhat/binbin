@@ -1,4 +1,6 @@
 const { assert } = require('chai');
+const BigNumber = require('bignumber.js');
+
 const { bb, decode, encode } = require('../lib/binbin');
 
 describe('decode', () => {
@@ -17,78 +19,80 @@ describe('decode', () => {
     assert.equal(decoded.d, 1);
   });
 
-  it('decodes simple bits', () => {
-    const sampleData = [parseInt('00001111', 2), parseInt('01101100', 2)];
-    const decoded = decode(bb.sequence(
-      ['a', bb.bit(4)],
-      ['b', bb.sequence(
-        ['bb', bb.bit]
-      )],
-      ['c', bb.bit(4)],
-      ['d', bb.bit(7)]
-    ), sampleData);
+  describe('bits', () => {
+    it('decodes sequence of bits', () => {
+      const sampleData = [0b00001111, 0b01101100];
+      const decoded = decode(bb.sequence(
+        ['a', bb.bit(4)],
+        ['b', bb.sequence(
+          ['bb', bb.bit]
+        )],
+        ['c', bb.bit(4)],
+        ['d', bb.bit(7)]
+      ), sampleData);
 
-    assert.equal(decoded.a, 0);
-    assert.equal(decoded.b.bb, 1);
-    assert.equal(decoded.c, 14);
-    assert.equal(decoded.d, 108);
-  });
+      assert.equal(decoded.a, 0);
+      assert.equal(decoded.b.bb, 1);
+      assert.equal(decoded.c, 14);
+      assert.equal(decoded.d, 108);
+    });
+  })
 
-  it('decodes uint', () => {
-    const sampleData = [16, 16, 37];
-    const decoded = decode(bb.sequence(
-      ['a', bb.uint(16)],
-      ['b', bb.uint(8)]
-    ), sampleData);
+  describe('bignumber', () => {
+    it('decodes bignumber', () => {
+      const sampleData = [];
 
-    assert.equal(decoded.a, 4112);
-    assert.equal(decoded.b, 37);
-  });
+      // push a 128-bit number
+      for (let i = 0; i < 16; i++) {
+        sampleData.push(0b11111111);
+      }
 
-  it('decodes array of bits', () => {
-    const sampleData = [parseInt('10101011', 2), parseInt('01011101', 2)];
-    const decoded = decode(bb.sequence(
-      ['a', bb.array(16, bb.bit)]
-    ), sampleData);
-    
-    assert.deepEqual(decoded.a, [1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1])
-  });
+      const decoded = decode(bb.bignumber(128), sampleData);
 
-  it('decodes branch', () => {
-    const sampleData1 = [0x00, 0xC0, 0xFF, 0xEE];
-    const sampleData2 = [0x01, 0xC0, 0xFF, 0xEE];
+      assert.isTrue(decoded.equals(new BigNumber(2).pow(128).minus(1)));
+    })
+  })
 
-    const spec = bb.sequence(
-      ['type', bb.byte],
-      [bb.embed, bb.branch('type', {
-        0: bb.sequence(
-          ['a', bb.byte],
-          ['b', bb.byte],
-          ['c', bb.byte]
-        ),
-        1: bb.sequence(
-          ['big', bb.uint(24)]
-        )
-      })]
-    );
+  describe('array', () => {
+    it('decodes array of bits', () => {
+      const sampleData = [0b10101011, 0b01011101];
+      const decoded = decode(bb.sequence(
+        ['a', bb.array(16, bb.bit)]
+      ), sampleData);
+      
+      assert.deepEqual(decoded.a, [1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1])
+    });
+  })
 
-    const decoded1 = decode(spec, sampleData1);
-    const decoded2 = decode(spec, sampleData2);
+  describe('branch', () => {
+    it('decodes branch', () => {
+      const sampleData1 = [0x00, 0xC0, 0xFF, 0xEE];
+      const sampleData2 = [0x01, 0xC0, 0xFF, 0xEE];
 
-    assert.deepEqual(decoded1, {type: 0, a: 0xC0, b: 0xFF, c: 0xEE});
-    assert.deepEqual(decoded2, {type: 1, big: 0xC0FFEE });
+      const spec = bb.sequence(
+        ['type', bb.byte],
+        [bb.embed, bb.branch('type', {
+          0: bb.sequence(
+            ['a', bb.byte],
+            ['b', bb.byte],
+            ['c', bb.byte]
+          ),
+          1: bb.sequence(
+            ['big', bb.bit(24)]
+          )
+        })]
+      );
+
+      const decoded1 = decode(spec, sampleData1);
+      const decoded2 = decode(spec, sampleData2);
+
+      assert.deepEqual(decoded1, {type: 0, a: 0xC0, b: 0xFF, c: 0xEE});
+      assert.deepEqual(decoded2, {type: 1, big: 0xC0FFEE });
+    })
   })
 });
 
 describe('encode', () => {
-  describe('uint', () => {
-    it('encodes multi-byte uint', () => {
-      const spec = bb.uint(24);
-      const encoded = encode(spec, 0xC0FFEE);
-      assert.deepEqual(encoded, Uint8Array.from([0xC0, 0xFF, 0xEE]))
-    });
-  });
-
   describe('bits', () => {
     it('encodes within single byte', () => {
       const spec = bb.sequence(
@@ -118,14 +122,6 @@ describe('encode', () => {
       
       assert.deepEqual(encoded, Uint8Array.from([0b11111111, 0b10101101, 0b10101011]))
     });
-    // it('encodes high-bit bytes', () => {
-    //   const spec = bb.bit(64);
-    //   const encoded = encode(spec, {
-    //     a: new BigNumber('228698418639616')
-    //   });
-
-    //   console.log(encoded);
-    // })
     it('clips overflow', () => {
       const spec = bb.sequence(
         ['a', bb.bit(7)],
@@ -141,6 +137,20 @@ describe('encode', () => {
       assert.deepEqual(encoded, Uint8Array.from([0b11111111, 0b10101101, 0b10101011]))
     })
   });
+
+  describe('bignumber', () => {
+    it ('encodes bignumber', () => {
+      const spec = bb.bignumber(128);
+      const encoded = encode(spec, new BigNumber(2).pow(128).minus(1));
+
+      const expected = [];
+      for (let i = 0; i < 16; i++) {
+        expected.push(0b11111111);
+      }
+
+      assert.deepEqual(encoded, Uint8Array.from(expected));
+    })
+  })
 
   describe('array', () => {
     it('encodes array', () => {
