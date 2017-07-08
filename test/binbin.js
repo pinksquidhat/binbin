@@ -100,6 +100,16 @@ describe('decode', () => {
 
       assert.deepEqual(decoded, sampleData);
     })
+  });
+
+  describe('string', () => {
+    it('decodes string', () => {
+      const expected = "🤔 hmmmmm";
+      const sampleData = Uint8Array.from([240, 159, 164, 148, 32, 104, 109, 109, 109, 109, 109]);
+      const spec = bb.string(11);
+      const decoded = decode(spec, sampleData);
+      assert.deepEqual(decoded, expected);
+    })
   })
 });
 
@@ -258,10 +268,22 @@ describe('encode', () => {
       const data = Uint8Array.from([0xC0, 0xFF, 0xEE])
 
       const encoded = encode(spec, data);
-
+      
       assert.deepEqual(encoded, data);
     })
   });
+
+  describe('string', () => {
+    it('encoded string', () => {
+      const expected = Uint8Array.from([240, 159, 164, 148, 32, 104, 109, 109, 109, 109, 109]);
+      const sampleData = "🤔 hmmmmm";
+      const spec = bb.string(11);
+
+      const encoded = encode(spec, sampleData);
+
+      assert.deepEqual(encoded, expected);
+    })
+  })
 });
 
 
