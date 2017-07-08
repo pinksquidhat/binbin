@@ -27,7 +27,7 @@ const pulseInstrument = bb.sequence(
   ['wave', bb.bit(2)],
   ['phaseFinetune', bb.bit(4)],
   ['pan', bb.bit(2)],
-  bb.array(8, bb.byte)
+  bb.bignumber(64)
 );
 
 const waveInstrument = bb.sequence(
@@ -46,7 +46,7 @@ const waveInstrument = bb.sequence(
   ['pan', bb.bit(2)],
   bb.bit(14),
   ['playType', bb.bit(2)],
-  bb.array(4, bb.byte),
+  bb.bignumber(32),
   ['steps', bb.bit(4)],
   ['speed', bb.bit(4)],
   bb.byte
@@ -91,7 +91,7 @@ const noiseInstrument = bb.sequence(
   ['table', instrumentTableAssignment],
   bb.bit(6),
   ['pan', bb.bit(2)],
-  bb.array(4, bb.bit(16)),
+  bb.bignumber(64)
 );
 
 const instrument = bb.sequence(

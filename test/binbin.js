@@ -139,14 +139,57 @@ describe('encode', () => {
   });
 
   describe('bignumber', () => {
-    it ('encodes bignumber', () => {
-      const spec = bb.bignumber(128);
-      const encoded = encode(spec, new BigNumber(2).pow(128).minus(1));
+    it('???', () => {
+      const spec = bb.bignumber(64);
+      const data = new BigNumber('0000D000' + '0000F300', 16);
+      const encoded = encode(spec, data);
 
-      const expected = [];
-      for (let i = 0; i < 16; i++) {
-        expected.push(0b11111111);
-      }
+      assert.deepEqual(encoded, Uint8Array.from([
+        0x00, 0x00, 0xD0, 0x00, 0x00, 0x00, 0xF3, 0x00
+      ]));
+    })
+    it('encodes bignumber', () => {
+      const spec = bb.bignumber(128);
+      const encoded = encode(spec,
+        new BigNumber(
+          '10000000'+
+          '11000000'+
+          '11100000'+
+          '11110000'+
+          '11111000'+
+          '11111100'+
+          '11111110'+
+          '11111111'+
+          '10000000'+
+          '11000000'+
+          '11100000'+
+          '11110000'+
+          '11111000'+
+          '11111100'+
+          '11111110'+
+          '11111111',
+          2
+        )
+      );
+
+      const expected = [
+        0b10000000,
+        0b11000000,
+        0b11100000,
+        0b11110000,
+        0b11111000,
+        0b11111100,
+        0b11111110,
+        0b11111111,
+        0b10000000,
+        0b11000000,
+        0b11100000,
+        0b11110000,
+        0b11111000,
+        0b11111100,
+        0b11111110,
+        0b11111111
+      ];
 
       assert.deepEqual(encoded, Uint8Array.from(expected));
     })
